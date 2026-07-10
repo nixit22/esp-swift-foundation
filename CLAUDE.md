@@ -30,8 +30,9 @@ imported plainly — not `@_exported`, unlike `esp-swift-nvs`'s pattern — sinc
 internal implementation detail, not part of the public API surface). `Date.now` is meaningless
 before the system clock has actually been synced (NTP, Matter's Time Synchronization cluster, etc.)
 — the ESP32 boots near the Unix epoch otherwise. Callers needing "has the clock been synced yet"
-still need their own threshold check (e.g. `TimeUtil.c`'s `time_util_has_synced_time`); that check
-wasn't folded in here since "synced" is app-defined (what counts as a sane threshold varies).
+still need their own threshold check (e.g. `matter-time-test/main.swift`'s
+`Date.now >= syncedTimeThreshold`); that check wasn't folded in here since "synced" is app-defined
+(what counts as a sane threshold varies).
 
 ## Files
 
@@ -94,7 +95,7 @@ component or its test-app.
 ## Explicitly out of scope for v0
 
 No `Calendar`, `DateFormatter`, `DateComponents`, ISO8601 formatting, or `Codable`. Apps needing
-formatted output still write their own C/Swift formatting code against `timeIntervalSince1970`
-(e.g. via `<time.h>`'s `gmtime_r`/`strftime`, as `matter-time-test`'s `TimeUtil.c` does) — this
+formatted output beyond `Date`'s own `CustomStringConvertible` (`YYYY-MM-DD HH:MM:SS +0000`, UTC
+only) still write their own C/Swift formatting code against `timeIntervalSince1970` — this
 component doesn't attempt to replace that, only to give call sites a shared, comparable value type
 instead of each app passing around raw `Double`/`time_t`.
