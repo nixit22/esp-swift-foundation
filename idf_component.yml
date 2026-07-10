@@ -1,0 +1,8 @@
+name: esp-swift-foundation
+version: "0.1.0"
+description: "Minimal Foundation-shaped types (Date) for Embedded Swift"
+url: "https://github.com/nixit22/esp-swift-foundation"
+dependencies:
+  idf: ">=5.5"
+  esp-swift-support:
+    git: "https://github.com/nixit22/esp-swift-support.git"
