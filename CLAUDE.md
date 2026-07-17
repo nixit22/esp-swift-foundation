@@ -1,9 +1,12 @@
 # SwiftFoundation
 
-Minimal Foundation-shaped types for Embedded Swift. Swift module name: **`Foundation`**.
+Minimal Foundation-shaped types for Embedded Swift, plus libm math bindings. Swift module name:
+**`Foundation`**.
 
-Depends on: `esp-swift-support` (just for `swift_support.h`'s `SWIFT_NAME`; no `esp-swift-platform`,
-no ESP-IDF driver components).
+Depends on: `esp-swift-support` (`swift_support.h`'s `SWIFT_NAME`, and — as a public `REQUIRES`, not
+`PRIV_REQUIRES` — the implicit toolchain include dirs that let `foundation.h`'s `#include <math.h>`
+resolve when *consumers* re-parse the umbrella header, not just when this component builds itself;
+no `esp-swift-platform`, no ESP-IDF driver components).
 
 ## Why this exists
 
@@ -25,9 +28,13 @@ without an RTC. Here, `Date` is just an immutable `timeIntervalSince1970: Double
 `Comparable`/`Equatable`/`Hashable`, arithmetic via `addingTimeInterval`/`timeIntervalSince`.
 
 The **only** clock-touching code is `Date.now`, backed by `src/foundation.c`'s
-`foundation_clock_now_seconds()` (a `clock_gettime(CLOCK_REALTIME)` facade, `SWIFT_NAME`'d and
-imported plainly — not `@_exported`, unlike `esp-swift-nvs`'s pattern — since the C function is an
-internal implementation detail, not part of the public API surface). `Date.now` is meaningless
+`foundation_clock_now_seconds()` (a `clock_gettime(CLOCK_REALTIME)` facade, `SWIFT_NAME`'d).
+`Date.swift` imports the raw Clang module with `@_exported import ESP_Foundation` — same pattern
+as `esp-swift-nvs` — so that libm (re-exported through `foundation.h`'s `#include <math.h>`, see
+below) reaches `import Foundation` callers too; `foundation_clock_now_seconds`/
+`foundation_format_description` ride along as an incidental, undocumented part of that re-export
+(harmless — they're an internal implementation detail callers have no reason to call directly, just
+no longer hidden at the type-system level). `Date.now` is meaningless
 before the system clock has actually been synced (NTP, Matter's Time Synchronization cluster, etc.)
 — the ESP32 boots near the Unix epoch otherwise. Callers needing "has the clock been synced yet"
 still need their own threshold check (e.g. `matter-time-test/main.swift`'s
@@ -39,8 +46,35 @@ still need their own threshold check (e.g. `matter-time-test/main.swift`'s
 | File | Role |
 |---|---|
 | `src/Date.swift` | `Date`, `TimeInterval` — the public API |
-| `src/foundation.h` / `src/foundation.c` | Internal `clock_gettime` facade backing `Date.now` |
+| `src/foundation.h` / `src/foundation.c` | Internal `clock_gettime` facade backing `Date.now`; also the umbrella header re-exporting libm |
 | `module.modulemap` | Clang module `ESP_Foundation` — umbrella over `src/foundation.h` |
+
+## libm math functions (sin/cos/exp/log/pow/...)
+
+`src/foundation.h` does a plain `#include <math.h>`, so libm's declarations become part of the raw
+Clang module `ESP_Foundation`. `Date.swift`'s `@_exported import ESP_Foundation` is what actually
+carries them through to `import Foundation` callers — a plain (non-`@_exported`) import would only
+make them visible inside `esp-swift-foundation`'s own sources, not to downstream consumers. No
+`SWIFT_NAME` wrapping needed since the C names (`sin`, `cosf`, `sqrt`, `atan2f`, ...) already match
+Swift's naming convention. There is no `Glibc`/`Darwin`-style overlay module for this target (see
+[the wiki study](/Users/nicolas/bob/wiki/esp32-swift/embedded-swift-math-functions.md)) — libm
+itself is already linked (same newlib backing `clock_gettime` above), just not otherwise exposed to
+Swift.
+
+Covers the full Tier-1 table: trig (`sin/cos/tan/asin/acos/atan/atan2`), hyperbolic
+(`sinh/cosh/tanh/asinh/acosh/atanh`), exp/log (`exp/exp2/expm1/log/log2/log10/log1p`), power/root
+(`pow/sqrt/cbrt/hypot`), rounding (`ceil/floor/round/trunc/nearbyint/rint`), misc
+(`fabs/fmod/fdim/fma/copysign/frexp/ldexp/modf`), and newlib's special-function extensions
+(`erf/erfc/tgamma/lgamma/j0/j1/jn/y0/y1/yn`) — each with a `Double` and an `f`-suffixed `Float`
+variant.
+
+**Prefer the `f`-suffixed `Float` variants** (`sinf`, `cosf`, `sqrtf`, ...) in real call sites.
+ESP32C6 is RV32IMC — no double-precision FPU extension — so `Double` trig is soft-float and slow.
+Waveform-generation callers (LEDC PWM curves, MCPWM motor profiles) should default to `Float`.
+
+Out of scope: `swift-numerics`' `RealModule`/`Real` protocol layer — a separate, generic wrapper
+around this same libm surface, unverified for Embedded Swift buildability. This component only
+provides the raw C-level bindings.
 
 ## Public API
 

@@ -24,10 +24,17 @@
  * Internal C facade over <time.h> — the clock read backing `Date.now`, and the
  * gmtime_r/strftime formatting backing `Date.description`. Not re-exported to
  * Swift callers; both are internal implementation details behind Date's API.
+ *
+ * Also pulls in <math.h>: this umbrella header's `export *` (see module.modulemap)
+ * re-exports newlib's full libm surface (sin/cos/exp/log/pow/... and float variants)
+ * to Swift callers as part of this module's public API — no SWIFT_NAME needed since
+ * the C names already match Swift's naming convention. There is no Glibc/Darwin-style
+ * overlay module for this target otherwise, so this is the only path to libm from Swift.
  */
 
 #pragma once
 
+#include <math.h>
 #include <stddef.h>
 #include <swift_support.h>
 

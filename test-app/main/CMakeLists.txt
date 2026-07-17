@@ -24,6 +24,7 @@ idf_component_register(
     SRCS
         "main.swift"
         "TestDate.swift"
+        "TestMath.swift"
     INCLUDE_DIRS "."
     REQUIRES esp-swift-foundation esp-swift-platform
 )
