@@ -29,9 +29,9 @@ without an RTC. Here, `Date` is just an immutable `timeIntervalSince1970: Double
 
 The **only** clock-touching code is `Date.now`, backed by `src/foundation.c`'s
 `foundation_clock_now_seconds()` (a `clock_gettime(CLOCK_REALTIME)` facade, `SWIFT_NAME`'d).
-`Date.swift` imports the raw Clang module with `@_exported import ESP_Foundation` — same pattern
-as `esp-swift-nvs` — so that libm (re-exported through `foundation.h`'s `#include <math.h>`, see
-below) reaches `import Foundation` callers too; `foundation_clock_now_seconds`/
+`Date.swift` imports the raw Clang module with `@_exported import ESP_Foundation` so that libm
+(re-exported through `foundation.h`'s `#include <math.h>`, see below) reaches `import Foundation`
+callers too; `foundation_clock_now_seconds`/
 `foundation_format_description` ride along as an incidental, undocumented part of that re-export
 (harmless — they're an internal implementation detail callers have no reason to call directly, just
 no longer hidden at the type-system level). `Date.now` is meaningless

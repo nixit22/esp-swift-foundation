@@ -19,9 +19,8 @@
 // SOFTWARE.
 
 /// Re-exports the raw Clang module `ESP_Foundation` (see `module.modulemap`/`src/foundation.h`)
-/// so `import Foundation` callers get libm (`sin`/`cosf`/`sqrt`/...) directly, same pattern
-/// `esp-swift-nvs`/`esp-swift-adc`/etc. use for their own C modules. A plain (non-`@_exported`)
-/// import only makes these declarations visible inside this component's own sources, not to
-/// downstream consumers — see the wiki's embedded-swift-math-functions page for the bug this
-/// fixes.
+/// so `import Foundation` callers get libm (`sin`/`cosf`/`sqrt`/...) directly. A plain
+/// (non-`@_exported`) import only makes these declarations visible inside this component's own
+/// sources, not to downstream consumers — see the wiki's embedded-swift-math-functions page for
+/// the bug this fixes.
 @_exported import ESP_Foundation
