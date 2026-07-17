@@ -18,15 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import Platform
-
-@_cdecl("app_main")
-func app_main() {
-    let logger = Logger(tag: "esp-swift-foundation-test")
-    logger.i("esp-swift-foundation test app booted")
-
-    testDate(logger: logger)
-    testMath(logger: logger)
-
-    logger.i("All selected tests finished")
-}
+/// Re-exports the raw Clang module `ESP_Foundation` (see `module.modulemap`/`src/foundation.h`)
+/// so `import Foundation` callers get libm (`sin`/`cosf`/`sqrt`/...) directly. A plain
+/// (non-`@_exported`) import only makes these declarations visible inside this component's own
+/// sources, not to downstream consumers — see the wiki's embedded-swift-math-functions page for
+/// the bug this fixes.
+@_exported import ESP_Foundation

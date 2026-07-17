@@ -18,15 +18,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import Foundation
 import Platform
 
-@_cdecl("app_main")
-func app_main() {
-    let logger = Logger(tag: "esp-swift-foundation-test")
-    logger.i("esp-swift-foundation test app booted")
+func testMath(logger: Logger) {
+    let tolerance: Float = 0.0001
 
-    testDate(logger: logger)
-    testMath(logger: logger)
+    guard abs(sinf(0)) < tolerance else {
+        logger.e("Math: sinf(0) mismatch")
+        return
+    }
+    guard abs(cosf(0) - 1) < tolerance else {
+        logger.e("Math: cosf(0) mismatch")
+        return
+    }
+    guard abs(sqrtf(4) - 2) < tolerance else {
+        logger.e("Math: sqrtf(4) mismatch")
+        return
+    }
+    guard abs(expf(0) - 1) < tolerance else {
+        logger.e("Math: expf(0) mismatch")
+        return
+    }
+    guard abs(atan2f(1, 1) - 0.7853982) < tolerance else {
+        logger.e("Math: atan2f(1,1) mismatch")
+        return
+    }
 
-    logger.i("All selected tests finished")
+    logger.i("Math: libm APIs compiled and behaved correctly")
 }

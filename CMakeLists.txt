@@ -22,10 +22,11 @@
 
 idf_component_register(
     SRCS
+        src/Foundation.swift
         src/Date.swift
         src/foundation.c
     PRIV_INCLUDE_DIRS "src"
-    PRIV_REQUIRES esp-swift-support
+    REQUIRES esp-swift-support
 )
 
 swift_configure(
