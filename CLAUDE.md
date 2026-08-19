@@ -10,8 +10,7 @@ no `esp-swift-platform`, no ESP-IDF driver components).
 
 ## Why this exists
 
-Real Foundation (and `FoundationEssentials`) doesn't build for Embedded Swift — see
-[the wiki's writeup](/Users/nicolas/bob/wiki/esp32-swift/foundation-embedded-swift.md) of the
+Real Foundation (and `FoundationEssentials`) doesn't build for Embedded Swift — see the
 still-open [Swift Forums thread](https://forums.swift.org/t/foundation-in-embedded-swift/84483).
 Blockers: `Calendar`/locale need ICU (too big for MCU targets), `Data` needs an embedded-compatible
 allocator story, JSON needs existential types Embedded Swift doesn't have. None of that blocks a
@@ -56,8 +55,7 @@ Clang module `ESP_Foundation`. `Date.swift`'s `@_exported import ESP_Foundation`
 carries them through to `import Foundation` callers — a plain (non-`@_exported`) import would only
 make them visible inside `esp-swift-foundation`'s own sources, not to downstream consumers. No
 `SWIFT_NAME` wrapping needed since the C names (`sin`, `cosf`, `sqrt`, `atan2f`, ...) already match
-Swift's naming convention. There is no `Glibc`/`Darwin`-style overlay module for this target (see
-[the wiki study](/Users/nicolas/bob/wiki/esp32-swift/embedded-swift-math-functions.md)) — libm
+Swift's naming convention. There is no `Glibc`/`Darwin`-style overlay module for this target — libm
 itself is already linked (same newlib backing `clock_gettime` above), just not otherwise exposed to
 Swift.
 
