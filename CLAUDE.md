@@ -45,15 +45,18 @@ still need their own threshold check (e.g. `matter-time-test/main.swift`'s
 | File | Role |
 |---|---|
 | `src/Date.swift` | `Date`, `TimeInterval` — the public API |
+| `src/Foundation.swift` | `@_exported import ESP_Foundation` — re-exports the Clang module (and its libm surface) to downstream `import Foundation` callers |
 | `src/foundation.h` / `src/foundation.c` | Internal `clock_gettime` facade backing `Date.now`; also the umbrella header re-exporting libm |
 | `module.modulemap` | Clang module `ESP_Foundation` — umbrella over `src/foundation.h` |
 
 ## libm math functions (sin/cos/exp/log/pow/...)
 
 `src/foundation.h` does a plain `#include <math.h>`, so libm's declarations become part of the raw
-Clang module `ESP_Foundation`. `Date.swift`'s `@_exported import ESP_Foundation` is what actually
-carries them through to `import Foundation` callers — a plain (non-`@_exported`) import would only
-make them visible inside `esp-swift-foundation`'s own sources, not to downstream consumers. No
+Clang module `ESP_Foundation`. `Foundation.swift`'s `@_exported import ESP_Foundation` is what
+actually carries them through to `import Foundation` callers — a plain (non-`@_exported`) import
+would only make them visible inside `esp-swift-foundation`'s own sources, not to downstream
+consumers. (`Date.swift` itself does a plain, non-exported `import ESP_Foundation` — it only needs
+the C symbols for its own implementation.) No
 `SWIFT_NAME` wrapping needed since the C names (`sin`, `cosf`, `sqrt`, `atan2f`, ...) already match
 Swift's naming convention. There is no `Glibc`/`Darwin`-style overlay module for this target — libm
 itself is already linked (same newlib backing `clock_gettime` above), just not otherwise exposed to
