@@ -13,6 +13,24 @@ comparable point in time, decoupled from any particular clock source.
 - `description` — `CustomStringConvertible`, UTC `"YYYY-MM-DD HH:MM:SS +0000"`, for debug printing.
 - No `Calendar`/formatting/`Codable` — out of scope for now (see `CLAUDE.md`).
 
+## Adding it to a project
+
+This is a [SwiftPM](https://www.swift.org/package-manager/) package, built for ESP-IDF by
+`swift_package()` from [esp-swift-support](https://github.com/nixit22/esp-swift-support). In your
+app's `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/nixit22/esp-swift-foundation.git", branch: "SPM"),
+],
+targets: [
+    .target(name: "App", dependencies: [.product(name: "Foundation", package: "esp-swift-foundation")]),
+]
+```
+
+See esp-swift-support's README for the project setup (top-level `CMakeLists.txt`, `main`
+component, Swift toolchain).
+
 ## Usage
 
 ```swift

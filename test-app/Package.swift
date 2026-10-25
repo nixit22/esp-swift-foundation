@@ -18,9 +18,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// Re-exports the raw Clang module `ESP_Foundation` (see `module.modulemap`/`src/foundation.h`)
-/// so `import Foundation` callers get libm (`sin`/`cosf`/`sqrt`/...) directly. A plain
-/// (non-`@_exported`) import only makes these declarations visible inside this component's own
-/// sources, not to downstream consumers — see the wiki's embedded-swift-math-functions page for
-/// the bug this fixes.
-@_exported import ESP_Foundation
+// swift-tools-version: 6.0
+
+// The test app's Swift code, built by swift_package() (esp-swift-support).
+
+import PackageDescription
+
+let package = Package(
+    name: "TestApp",
+    products: [
+        .library(name: "TestApp", type: .static, targets: ["TestApp"]),
+    ],
+    dependencies: [
+        .package(path: ".."),
+        .package(url: "https://github.com/nixit22/esp-swift-platform.git", branch: "SPM"),
+    ],
+    targets: [
+        .target(
+            name: "TestApp",
+            dependencies: [
+                .product(name: "Foundation", package: "esp-swift-foundation"),
+                .product(name: "Platform", package: "esp-swift-platform"),
+            ]
+        ),
+    ],
+    swiftLanguageModes: [.v5]
+)

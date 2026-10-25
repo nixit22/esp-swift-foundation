@@ -1,4 +1,0 @@
-module ESP_Foundation [system] {
-    umbrella header "src/foundation.h"
-    export *
-}

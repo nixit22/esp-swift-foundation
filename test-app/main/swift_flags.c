@@ -20,24 +20,5 @@
  * SOFTWARE.
  */
 
-#include "foundation.h"
-#include <time.h>
-
-double foundation_clock_now_seconds(void)
-{
-    struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
-        return 0.0;
-    }
-    return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
-}
-
-size_t foundation_format_description(double seconds_since_1970, char *buffer, size_t length)
-{
-    time_t t = (time_t)seconds_since_1970;
-    struct tm tm_utc;
-    if (gmtime_r(&t, &tm_utc) == NULL) {
-        return 0;
-    }
-    return strftime(buffer, length, "%Y-%m-%d %H:%M:%S +0000", &tm_utc);
-}
+// Empty: ESP-IDF compiles it with the C flags of the main component, which
+// swift_package() gives to SwiftPM (esp-swift-support/cmake/swift_build.py).

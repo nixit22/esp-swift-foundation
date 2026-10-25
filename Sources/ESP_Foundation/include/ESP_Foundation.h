@@ -25,7 +25,7 @@
  * gmtime_r/strftime formatting backing `Date.description`. Not re-exported to
  * Swift callers; both are internal implementation details behind Date's API.
  *
- * Also pulls in <math.h>: this umbrella header's `export *` (see module.modulemap)
+ * Also pulls in <math.h>: this umbrella header's `export *` (the generated module map)
  * re-exports newlib's full libm surface (sin/cos/exp/log/pow/... and float variants)
  * to Swift callers as part of this module's public API — no SWIFT_NAME needed since
  * the C names already match Swift's naming convention. There is no Glibc/Darwin-style

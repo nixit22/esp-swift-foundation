@@ -3,10 +3,9 @@
 Minimal Foundation-shaped types for Embedded Swift, plus libm math bindings. Swift module name:
 **`Foundation`**.
 
-Depends on: `esp-swift-support` (`swift_support.h`'s `SWIFT_NAME`, and — as a public `REQUIRES`, not
-`PRIV_REQUIRES` — the implicit toolchain include dirs that let `foundation.h`'s `#include <math.h>`
-resolve when *consumers* re-parse the umbrella header, not just when this component builds itself;
-no `esp-swift-platform`, no ESP-IDF driver components).
+Depends on: `esp-swift-support` (`swift_support.h`'s `SWIFT_NAME`; the C compiler's own include folders, which let
+`ESP_Foundation.h`'s `#include <math.h>` resolve for the Swift importer, come from the toolset that
+esp-swift-support's `swift_package()` writes); no `esp-swift-platform`, no ESP-IDF driver components.
 
 ## Why this exists
 
@@ -26,10 +25,10 @@ RTC/clock exists — bare `Date()` in real Foundation assumes one, which doesn't
 without an RTC. Here, `Date` is just an immutable `timeIntervalSince1970: Double` wrapper —
 `Comparable`/`Equatable`/`Hashable`, arithmetic via `addingTimeInterval`/`timeIntervalSince`.
 
-The **only** clock-touching code is `Date.now`, backed by `src/foundation.c`'s
+The **only** clock-touching code is `Date.now`, backed by `Sources/ESP_Foundation/foundation.c`'s
 `foundation_clock_now_seconds()` (a `clock_gettime(CLOCK_REALTIME)` facade, `SWIFT_NAME`'d).
 `Date.swift` imports the raw Clang module with `@_exported import ESP_Foundation` so that libm
-(re-exported through `foundation.h`'s `#include <math.h>`, see below) reaches `import Foundation`
+(re-exported through `ESP_Foundation.h`'s `#include <math.h>`, see below) reaches `import Foundation`
 callers too; `foundation_clock_now_seconds`/
 `foundation_format_description` ride along as an incidental, undocumented part of that re-export
 (harmless — they're an internal implementation detail callers have no reason to call directly, just
@@ -44,14 +43,14 @@ still need their own threshold check (e.g. `matter-time-test/main.swift`'s
 
 | File | Role |
 |---|---|
-| `src/Date.swift` | `Date`, `TimeInterval` — the public API |
-| `src/Foundation.swift` | `@_exported import ESP_Foundation` — re-exports the Clang module (and its libm surface) to downstream `import Foundation` callers |
-| `src/foundation.h` / `src/foundation.c` | Internal `clock_gettime` facade backing `Date.now`; also the umbrella header re-exporting libm |
-| `module.modulemap` | Clang module `ESP_Foundation` — umbrella over `src/foundation.h` |
+| `Sources/Foundation/Date.swift` | `Date`, `TimeInterval` — the public API |
+| `Sources/Foundation/Foundation.swift` | `@_exported import ESP_Foundation` — re-exports the Clang module (and its libm surface) to downstream `import Foundation` callers |
+| `Sources/ESP_Foundation/include/ESP_Foundation.h` / `Sources/ESP_Foundation/foundation.c` | Internal `clock_gettime` facade backing `Date.now`; also the umbrella header re-exporting libm |
+| `Package.swift` | SwiftPM package: C target `ESP_Foundation` (module map generated from `include/ESP_Foundation.h`, the former `ESP_Foundation.h`) and Swift target `Foundation` |
 
 ## libm math functions (sin/cos/exp/log/pow/...)
 
-`src/foundation.h` does a plain `#include <math.h>`, so libm's declarations become part of the raw
+`Sources/ESP_Foundation/include/ESP_Foundation.h` does a plain `#include <math.h>`, so libm's declarations become part of the raw
 Clang module `ESP_Foundation`. `Foundation.swift`'s `@_exported import ESP_Foundation` is what
 actually carries them through to `import Foundation` callers — a plain (non-`@_exported`) import
 would only make them visible inside `esp-swift-foundation`'s own sources, not to downstream
@@ -116,7 +115,7 @@ literal `Date` comparisons behave the same as real Foundation.
 
 Ported directly from `apple/swift-foundation`'s `FoundationEssentials/Date.swift`: UTC
 `"YYYY-MM-DD HH:MM:SS +0000"` via `gmtime_r`/`strftime` (`foundation_format_description` in
-`src/foundation.c`), same `distantPast`/`distantFuture` bounds check and `"<description
+`Sources/ESP_Foundation/foundation.c`), same `distantPast`/`distantFuture` bounds check and `"<description
 unavailable>"` fallback as upstream. `CustomStringConvertible` conformance means `"\(someDate)"`
 and `logger.i("\(someDate)")` just work.
 
